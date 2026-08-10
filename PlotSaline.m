@@ -2,7 +2,8 @@
 clear; clc; close all;
 
 %% 1. Detect and Read All Measured Data Samples
-files = dir('saline_*.csv'); % find all files matching the pattern saline_1.csv, saline_2.csv, etc.
+
+[files, folderPath] = uigetfile({'*.csv;*.prn', 'VNA files'}, 'Select One or More Files', 'MultiSelect', 'on');
 numSamples = numel(files);
 
 if numSamples == 0
@@ -13,14 +14,27 @@ fprintf('Detected %d measurement samples.\n', numSamples);
 
 all_data = cell(1, numSamples);
 
+warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
+
 for k = 1:numSamples
-    filename = files(k).name;
-    opts = detectImportOptions(filename);
-    opts.DataLines = [13, Inf]; % Start reading data from line 13
-    data = readtable(filename, opts);
+    [filepath,name,ext] = fileparts(files(k));
+    
+    if char(ext) == '.prn'
+        data = readtable(char(files(k)),"FileType","text");
+    elseif char(ext) == '.csv'
+        opts = detectImportOptions(char(files(k)));
+        opts.DataLines = [13, Inf]; % Start reading data from line 13
+        data = readtable(char(files(k)), opts);
+    else
+        error('File neither .prn or .csv');
+    end
+    
     data.Properties.VariableNames = {'Frequency', 'Er', 'Ei'}; % Rename columns
+ 
     all_data{k} = data;
 end
+
+   warning('on', 'MATLAB:table:ModifiedAndSavedVarnames');
 
 % Assume all samples share the same frequency vector
 frequency = all_data{1}.Frequency;
@@ -69,14 +83,53 @@ error_Er = abs(epsilon_model_real - epsilon_meas_real) ./ abs(epsilon_model_real
 error_Ei = abs(epsilon_model_imag - epsilon_meas_imag) ./ abs(epsilon_model_imag) * 100;
 error_sigma = abs(conductivity - conductivity_meas) ./ abs(conductivity) * 100;
 
-%% 5. Report Average Errors
+%% 5. Define Upper Limit of Percent Error (per point)
+limit_error_Er = zeros(1, length(frequency));
+for x=1:length(frequency)
+    if and(frequency(x) >= 1e9, frequency(x) <= 5e9)
+        limit_error_Er(x) = 2;
+    else
+        limit_error_Er(x) = NaN;
+    end
+end
+
+limit_error_Ei = zeros(1, length(frequency));
+for x = 1:length(frequency)
+    if and(frequency(x) >= 1e9, frequency(x) <= 5e9)
+        limit_error_Ei(x) = 3;
+    else
+        limit_error_Ei(x) = NaN;
+    end
+end
+
+limit_error_E = zeros(1, length(frequency));
+for x = 1:length(frequency)
+    if and(frequency(x) >= 1e9, frequency(x) <= 5e9)
+        limit_error_E(x) = 5;
+    else
+        limit_error_E(x) = NaN;
+    end
+end
+
+limit_error_c = zeros(1, length(frequency));
+for x = 1:length(frequency)
+    if and(frequency(x) >= 1e9, frequency(x) <= 5e9)
+        limit_error_c(x) = 3;
+    else
+        limit_error_c(x) = NaN;
+    end
+end
+
+%% 6. Report Average Errors
 fprintf('\n--- Saline Model Validation (Average of %d Samples) @ T = %.1f°C, C = %.3f mol/L ---\n', ...
     numSamples, T, C);
 fprintf('Average %% Error in ε′ (real part):  %.2f%%\n', mean(error_Er));
 fprintf('Average %% Error in ε″ (imag part):  %.2f%%\n', mean(error_Ei));
 fprintf('Average %% Error in σ:  %.2f%%\n', mean(error_sigma));
 
-%% 6. Plot Comparison (average measured vs model)
+%% 7. Plot Comparison (average measured vs model)
+
+% Plot comparison
 figure;
 figure('Units','centimeters','Position',[2, 2, 15, 16]);
 
@@ -100,3 +153,41 @@ plot(frequency/1e9, conductivity, 'r-', 'LineWidth', 2, 'DisplayName', 'Model σ
 xlabel('Frequency (GHz)'); ylabel('Conductivity (S/m)');
 title('Comparison of Conductivity');
 legend; 
+
+% Plot calculated error
+figure;
+
+subplot(4,1,1)
+plot(frequency/1e9, error_Er + error_Ei, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples));hold on;
+plot(frequency/1e9, limit_error_E, 'r--', 'DisplayName', 'Upper limit of 5% error')
+xlabel('Frequency (GHz)'); ylabel('% error');
+title(sprintf('Error in ε (complex permittivity) across all %d samples', numSamples));
+legend;
+
+subplot(4,1,2)
+plot(frequency/1e9, error_Er, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples)); hold on;
+plot(frequency/1e9, limit_error_Er, 'r--', 'DisplayName', 'Upper limit of 2% error');
+xlabel('Frequency (GHz)'); ylabel('% error');
+title(sprintf('Error in ε′ (real permittivity) across all %d samples', numSamples));
+legend;
+
+subplot(4,1,3)
+plot(frequency/1e9, error_Ei, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples)); hold on;
+plot(frequency/1e9, limit_error_Ei, 'r--', 'DisplayName', 'Upper limit of 3% error');
+xlabel('Frequency (GHz)'); ylabel('% error');
+title(sprintf('Error in ε″ (imaginary permittivity) across all %d samples', numSamples));
+legend;
+
+subplot(4,1,4)
+plot(frequency/1e9, error_sigma, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples)); hold on;
+plot(frequency/1e9, limit_error_c, 'r--', 'DisplayName', 'Upper limit of 3% error');
+xlabel('Frequency (GHz)'); ylabel('% error');
+xlabel('Frequency (GHz)'); ylabel('% error');
+title(sprintf('Error in σ (conductivity) across all %d samples', numSamples));
+legend;
+
+%% notes to add:
+% a better way of marking the upper limit on the graph itself
+% do loop to check for new files and plot
+% enter temperature immediately 
+
