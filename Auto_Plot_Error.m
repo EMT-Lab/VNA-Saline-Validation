@@ -81,14 +81,14 @@ conductivity = -imag(epsilon_complex) .* omega .* epsilon_0;
 %% 4. Compute Percent Error (per point)
 error_Er_mean = abs(epsilon_model_real - epsilon_meas_real) ./ abs(epsilon_model_real) * 100;
 error_Ei_mean = abs(epsilon_model_imag - epsilon_meas_imag) ./ abs(epsilon_model_imag) * 100;
-error_sigma_mean = abs(conductivity - conductivity_meas) ./ abs(conductivity) * 100;
+error_sigma = abs(conductivity - conductivity_meas) ./ abs(conductivity) * 100;
 
 error_Er = zeros(length(frequency),numSamples);
 error_Ei = zeros(length(frequency), numSamples);
 
 for x = 1:numSamples
     error_Er(:, x) = abs(epsilon_model_real - epsilon_meas_real_all(:,x)) ./ abs(epsilon_model_real) * 100;
-    error_Ei(:, x) = abs(epsilon_model_real- epsilon_meas_real_all(:,x)) ./ abs(epsilon_model_imag) * 100;
+    error_Ei(:, x) = abs(epsilon_model_imag- epsilon_meas_imag_all(:,x)) ./ abs(epsilon_model_imag) * 100;
 end
 
 %% 5. Define Upper Limit of Percent Error (per point)
@@ -133,12 +133,11 @@ fprintf('\n--- Saline Model Validation (Average of %d Samples) @ T = %.1f°C, C 
     numSamples, T, C);
 fprintf('Average %% Error in ε′ (real part):  %.2f%%\n', mean(error_Er_mean));
 fprintf('Average %% Error in ε″ (imag part):  %.2f%%\n', mean(error_Ei_mean));
-fprintf('Average %% Error in σ:  %.2f%%\n', mean(error_sigma_mean));
+fprintf('Average %% Error in σ:  %.2f%%\n', mean(error_sigma));
 
 %% 7. Plot Comparison (average measured vs model)
 
 % Plot comparison
-figure;
 figure('Units','centimeters','Position',[2, 2, 15, 16]);
 
 subplot(3,1,1);
@@ -163,7 +162,7 @@ title('Comparison of Conductivity');
 legend; 
 
 % Plot calculated error
-figure
+figure;
 
 subplot(4,1,1)
 plot(frequency/1e9, error_Er_mean + error_Ei_mean, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples));hold on;
@@ -187,23 +186,28 @@ title(sprintf('Error in ε″ (imaginary permittivity) across all %d samples', n
 legend;
 
 subplot(4,1,4)
-plot(frequency/1e9, error_sigma_mean, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples)); hold on;
+plot(frequency/1e9, error_sigma, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples)); hold on;
 plot(frequency/1e9, limit_error_c, 'r--', 'DisplayName', 'Upper limit of 3% error');
 xlabel('Frequency (GHz)'); ylabel('% error');
 title(sprintf('Error in σ (conductivity) across all %d samples', numSamples));
 legend;
 
-figure 
+%% Plot error for each measurement
+figure;
+subplot(2,1,1)
 plot(frequency/1e9, limit_error_Er, 'r--', 'DisplayName', 'Upper limit of 2% error'); hold on;
 for x = 1:numSamples
-    plot(frequency/1e9, error_Er(:,x), 'DisplayName', string(files(x))); hold on;
+    plot(frequency/1e9, error_Er(:,x), 'DisplayName', sprintf(string(files(x)))); hold on;
 end
 xlabel('Frequency (GHz)'); ylabel('% error');
 title(sprintf('Per sample error in ε′ (real permittivity)', numSamples));
-legend;
+legend('Interpreter','none');
 
-%% notes to add:
-% a better way of marking the upper limit on the graph itself
-% do loop to check for new files and plot
-% enter temperature immediately 
-
+subplot(2,1,2)
+plot(frequency/1e9, limit_error_Ei, 'r--', 'DisplayName', 'Upper limit of 3% error'); hold on;
+for x = 1:numSamples
+    plot(frequency/1e9, error_Ei(:,x), 'DisplayName', string(files(x))); hold on;
+end
+xlabel('Frequency (GHz)'); ylabel('% error');
+title(sprintf('Per sample error in ε" (imag permittivity)', numSamples));
+legend('Interpreter','none');
