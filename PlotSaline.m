@@ -166,41 +166,53 @@ legend;
 figure
 
 subplot(4,1,1)
+ymax = max(max(error_Ei_mean+error_Ei_mean,[],'all'), max(limit_error_E,[],'all'));
 plot(frequency/1e9, error_Er_mean + error_Ei_mean, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples));hold on;
 plot(frequency/1e9, limit_error_E, 'r--', 'DisplayName', 'Upper limit of 5% error')
 xlabel('Frequency (GHz)'); ylabel('% error');
+ylim([0 ymax*1.1]);
 title(sprintf('Error in ε (complex permittivity) across all %d samples', numSamples));
 legend;
 
 subplot(4,1,2)
+ymax = max(max(error_Er_mean,[],'all'), max(limit_error_Er,[],'all'));
 plot(frequency/1e9, error_Er_mean, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples)); hold on;
 plot(frequency/1e9, limit_error_Er, 'r--', 'DisplayName', 'Upper limit of 2% error');
 xlabel('Frequency (GHz)'); ylabel('% error');
+ylim([0 ymax*1.1]);
 title(sprintf('Error in ε′ (real permittivity) across all %d samples', numSamples));
 legend;
 
 subplot(4,1,3)
+ymax = max(max(error_Ei_mean,[],'all'), max(limit_error_Ei,[],'all'));
 plot(frequency/1e9, error_Ei_mean, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples)); hold on;
 plot(frequency/1e9, limit_error_Ei, 'r--', 'DisplayName', 'Upper limit of 3% error');
 xlabel('Frequency (GHz)'); ylabel('% error');
+ylim([0 ymax*1.1]);
 title(sprintf('Error in ε″ (imaginary permittivity) across all %d samples', numSamples));
 legend;
 
 subplot(4,1,4)
+ymax = max(max(error_sigma_mean,[],'all'), max(limit_error_c,[],'all'));
 plot(frequency/1e9, error_sigma_mean, 'b', 'DisplayName', sprintf('Average error (%d samples)', numSamples)); hold on;
 plot(frequency/1e9, limit_error_c, 'r--', 'DisplayName', 'Upper limit of 3% error');
 xlabel('Frequency (GHz)'); ylabel('% error');
+ylim([0 ymax*1.1]);
 title(sprintf('Error in σ (conductivity) across all %d samples', numSamples));
 legend;
 
 figure 
+ymax = 2;
+ymax_new = ymax;
 plot(frequency/1e9, limit_error_Er, 'r--', 'DisplayName', 'Upper limit of 2% error'); hold on;
 for x = 1:numSamples
     plot(frequency/1e9, error_Er(:,x), 'DisplayName', string(files(x))); hold on;
+    ymax_new = max(ymax, max(error_Er(:,x)));
 end
 xlabel('Frequency (GHz)'); ylabel('% error');
+ylim([0 ymax_new*1.1]);
 title(sprintf('Per sample error in ε′ (real permittivity)', numSamples));
-legend;
+legend('Interpreter', 'none');
 
 %% notes to add:
 % a better way of marking the upper limit on the graph itself
