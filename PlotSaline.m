@@ -139,27 +139,28 @@ fprintf('Average %% Error in σ:  %.2f%%\n', mean(error_sigma_mean));
 
 % Plot comparison
 figure;
-figure('Units','centimeters','Position',[2, 2, 15, 16]);
+%figure('Units','centimeters','Position',[2, 2, 15, 16]);
+
 
 subplot(3,1,1);
-plot(frequency/1e9, epsilon_model_real, 'r-', 'LineWidth', 2, 'DisplayName', 'Model ε′');
-plot(frequency/1e9, epsilon_meas_real, 'b--', 'DisplayName', sprintf('Avg Measured ε′ (%d samples)', numSamples)); hold on;
+plot(frequency/1e9, epsilon_model_real, 'r', 'DisplayName', 'Model ε′'); hold on;
+plot(frequency/1e9, epsilon_meas_real, 'b--', 'DisplayName', sprintf('Avg Measured ε′ (%d samples)', numSamples)); 
 
 xlabel('Frequency (GHz)'); ylabel('\epsilon′');
 title('Comparison of Real Part (\epsilon′)');
 legend; 
 
 subplot(3,1,2);
-plot(frequency/1e9, epsilon_model_imag, 'r-', 'LineWidth', 2, 'DisplayName', 'Model ε″');
-plot(frequency/1e9, epsilon_meas_imag, 'b--', 'DisplayName', sprintf('Avg Measured ε″ (%d samples)', numSamples)); hold on;
+plot(frequency/1e9, epsilon_model_imag, 'r', 'DisplayName', 'Model ε″'); hold on;
+plot(frequency/1e9, epsilon_meas_imag, 'b--', 'DisplayName', sprintf('Avg Measured ε″ (%d samples)', numSamples)); 
 
 xlabel('Frequency (GHz)'); ylabel('\epsilon″');
 title('Comparison of Imaginary Part (\epsilon″)');
 legend; 
 
 subplot(3,1,3);
-plot(frequency/1e9, conductivity, 'r-', 'LineWidth', 2, 'DisplayName', 'Model σ');
-plot(frequency/1e9, conductivity_meas, 'b--', 'DisplayName', sprintf('Avg Measured σ (%d samples)', numSamples)); hold on;
+plot(frequency/1e9, conductivity, 'r', 'DisplayName', 'Model σ'); hold on;
+plot(frequency/1e9, conductivity_meas, 'b--', 'DisplayName', sprintf('Avg Measured σ (%d samples)', numSamples)); 
 
 xlabel('Frequency (GHz)'); ylabel('Conductivity (S/m)');
 title('Comparison of Conductivity');
