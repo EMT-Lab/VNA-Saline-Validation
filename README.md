@@ -2,13 +2,13 @@
 
 This repository contains MATLAB scripts used to compare measured dielectric properties of saline to known reference values and evaluate the overall measurement error. The idea is to validate VNA-based measurements of permittivity and conductivity across a range of frequencies.
 
-The code reads experimental data from CSV files, computes error metrics, and generates visual comparisons between measured and reference properties.
+The code reads experimental data from .csv and .prn files, computes error metrics, and generates visual comparisons between measured and reference properties.
 
 ---
 
 ## What this project does
 
-- Reads dielectric measurement data from CSV files
+- Reads dielectric measurement data from .csv and .prn files
 - Analyzes the real and imaginary parts of permittivity
 - Converts permittivity to conductivity
 - Compares measured values to reference values
