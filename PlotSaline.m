@@ -4,27 +4,37 @@ clear; clc; close all;
 %% 1. Detect and Read All Measured Data Samples
 
 [files, folderPath] = uigetfile({'*.csv;*.prn', 'VNA files'}, 'Select One or More Files', 'MultiSelect', 'on');
+if ischar(files) == true
+    numSamples = 1;
+else
 numSamples = numel(files);
+end
 
 if numSamples == 0
     error('error rename your files');
 end
-
-fprintf('Detected %d measurement samples.\n', numSamples);
+    
+fprintf('Detected %d measurement sample(s).\n', numSamples);
 
 all_data = cell(1, numSamples);
 
 warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
 
 for k = 1:numSamples
-    [filepath,name,ext] = fileparts(files(k));
-    
+    if numSamples == 1
+        [filepath, name, ext] = fileparts(append(folderPath,files));
+        fileArray = files;
+    else
+        fileArray = files(k);
+        [filepath,name,ext] = fileparts(fileArray);
+    end 
+
     if char(ext) == '.prn'
-        data = readtable(char(files(k)),"FileType","text");
+        data = readtable(char(fileArray),"FileType","text");
     elseif char(ext) == '.csv'
-        opts = detectImportOptions(char(files(k)));
+        opts = detectImportOptions(char(fileArray));
         opts.DataLines = [13, Inf]; % Start reading data from line 13
-        data = readtable(char(files(k)), opts);
+        data = readtable(char(fileArray), opts);
     else
         error('File neither .prn or .csv');
     end
@@ -55,7 +65,8 @@ epsilon_meas_imag = mean(epsilon_meas_imag_all, 2);
 conductivity_meas = epsilon_meas_imag .* omega .* epsilon_0;
 
 %% 2. Input Temperature and Concentration
-T = input('Enter temperature in Celsius: '); % Example: 23.7
+% T = input('Enter temperature in Celsius: '); % Example: 23.7
+T = 23.6;
 C = 0.154;  % Physiological saline (0.9% NaCl) in mol/L
 
 %% 3. Theoretical Cole-Cole Model
